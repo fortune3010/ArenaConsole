@@ -35,33 +35,7 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Keystore
-        env:
-          KS: ${{ secrets.ARENA_KEYSTORE_BASE64 }}
-        run: |
-          if [ -n "$KS" ]; then
-            node -e "
-              const fs = require('fs');
-              const s = process.env.KS || '';
-              const clean = s.replace(/[^A-Za-z0-9+/=]/g, '');
-              const buf = Buffer.from(clean, 'base64');
-              if (buf.length === 0) process.exit(1);
-              fs.writeFileSync(process.env.RUNNER_TEMP + '/arena.jks', buf);
-              console.log('Keystore size:', buf.length, 'bytes');
-            "
-            echo "HAS_KEY=1" >> "$GITHUB_ENV"
-          fi
-      - name: Build (release assinado)
-        if: env.HAS_KEY == '1'
-        run: >
-          ./gradlew assembleNormalRelease --stacktrace
-          -PRELEASE_STORE_FILE="$RUNNER_TEMP/arena.jks"
-          -PRELEASE_STORE_PASSWORD="${{ secrets.ARENA_KEYSTORE_PASSWORD }}"
-          -PRELEASE_KEY_ALIAS="${{ secrets.ARENA_KEY_ALIAS }}"
-          -PRELEASE_KEY_PASSWORD="${{ secrets.ARENA_KEY_PASSWORD }}"
-
-      - name: Build (teste, chave de debug pública)
-        if: env.HAS_KEY != '1'
+      - name: Build Arena Console (com chave da Game Arena)
         run: ./gradlew assembleNormalOptimized --stacktrace
 
       - name: Juntar APK

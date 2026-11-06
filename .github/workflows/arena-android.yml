@@ -40,7 +40,18 @@ jobs:
           KS: ${{ secrets.ARENA_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KS" ]; then
-            echo "$KS" | tr -d '\n\r ' | base64 --decode --ignore-garbage > "$RUNNER_TEMP/arena.jks"
+            # 1. Limpar a string (remover quebras de linha e espaços)
+            KS_CLEAN=$(echo "$KS" | tr -d '\n\r ')
+            
+            # 2. Adicionar o padding '=' que o Linux base64 exige
+            LEN=${#KS_CLEAN}
+            REM=$((LEN % 4))
+            if [ $REM -eq 2 ]; then KS_CLEAN="${KS_CLEAN}=="; fi
+            if [ $REM -eq 3 ]; then KS_CLEAN="${KS_CLEAN}="; fi
+            
+            # 3. Descodificar
+            echo "$KS_CLEAN" | base64 --decode --ignore-garbage > "$RUNNER_TEMP/arena.jks"
+            
             if [ ! -s "$RUNNER_TEMP/arena.jks" ]; then
               echo "ERRO: Keystore vazio ou inválido"
               exit 1

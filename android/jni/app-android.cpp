@@ -1125,6 +1125,12 @@ void System_Notify(SystemNotification notification) {
 	case SystemNotification::AUDIO_MODE_CHANGED:
 		PushCommand("audio_mode_changed", "");
 		break;
+	case SystemNotification::BOOT_DONE:  // GA20_ARENA: esconde o ecrã de carregamento do Arena Console
+		PushCommand("arena_boot_done", "");
+		break;
+	case SystemNotification::ARENA_EXIT_REQUEST:  // GA20_ARENA: pausa/sair -> diálogo Java "Terminar a partida?"
+		PushCommand("arena_exit", "");
+		break;
 	default:
 		break;
 	}
@@ -1457,6 +1463,22 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendMessageFromJava(JNI
 	} else if (msg == "permission_granted") {
 		SetPermissionStatusFromJava(prm, PERMISSION_STATUS_GRANTED);
 		System_PostUIMessage(UIMessage::PERMISSION_GRANTED, prm);
+	} else if (msg == "arena_lock") {
+		// GA20_ARENA: Arena Console. Sem menus/atalhos (EmuScreen) e sem opções que mudam o jogo.
+		g_Config.bArenaLocked = (prm == "1");
+		if (g_Config.bArenaLocked) {
+			g_Config.bEnableCheats = false;
+			g_Config.iRewindSnapshotInterval = 0;
+			g_Config.bEnableStateUndo = false;
+			g_Config.bAllowSavestateWhileConnected = false;
+			g_Config.bAllowSpeedControlWhileConnected = false;
+			g_Config.bEnableNetworkChat = false;
+			g_Config.bShowDeveloperMenu = false;
+			g_Config.bShowImDebugger = false;
+			g_Config.iAdhocSimDelayMs = 0;
+			g_Config.iAdhocSimJitterMs = 0;
+			g_Config.iAdhocSimLossPercent = 0;
+		}
 	} else if (msg == "softKeyboardHidden") {
 		System_PostUIMessage(UIMessage::SOFT_KEYBOARD_HIDDEN);
 	} else if (msg == "sustained_perf_supported") {

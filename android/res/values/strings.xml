@@ -1,7 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">PPSSPP</string>
-    <string name="shortcut_name">PPSSPP game</string>
+    <string name="app_name">Arena Console</string>
+    <string name="shortcut_name">Arena Console</string>
+
+    <!-- GA20_ARENA: textos do Arena Console (portão, carregamento, saída da partida). -->
+    <string name="arena_gate_title">Arena Console</string>
+    <string name="arena_gate_open_ga">Abre pela Game Arena</string>
+    <string name="arena_gate_body">O Arena Console só abre as partidas da Game Arena. Abre a Game Arena, escolhe o teu jogo na aba Console e cria ou entra numa sala.</string>
+    <string name="arena_gate_btn_open">Abrir a Game Arena</string>
+    <string name="arena_gate_btn_back">Voltar à partida</string>
+    <string name="arena_gate_btn_close">Fechar</string>
+    <string name="arena_gate_no_launcher">A Game Arena não está instalada neste telemóvel.</string>
+    <string name="arena_gate_reason_no_auth">Pedido sem verificação. Atualiza a Game Arena.</string>
+    <string name="arena_gate_reason_wrong_sender">Pedido de outra app recusado.</string>
+    <string name="arena_gate_reason_bad_cert">A Game Arena instalada não é a oficial (assinatura diferente).</string>
+    <string name="arena_gate_reason_no_iso">Não foi possível abrir o ficheiro do jogo. Volta a carregá-lo na Game Arena.</string>
+    <string name="arena_gate_reason_bad_net">Os dados da partida não são válidos. Volta a criar a sala.</string>
+    <string name="arena_gate_cert_label">Certificado da Game Arena neste telemóvel (SHA-256):</string>
+    <string name="arena_gate_copy">Copiar certificado</string>
+    <string name="arena_gate_copied">Copiado</string>
+    <string name="arena_license">Baseado no PPSSPP de Henrik Rydgård e contribuidores · GPL 2.0 ou posterior</string>
+    <string name="arena_source">Código fonte</string>
+    <string name="arena_loading">A carregar o jogo…</string>
+    <string name="arena_net_joining">A entrar na partida…</string>
+    <string name="arena_net_waiting_peer">À espera do adversário…</string>
+    <string name="arena_net_peer_online">Adversário ligado</string>
+    <string name="arena_net_peer_lost">O adversário perdeu a ligação…</string>
+    <string name="arena_net_refused">O servidor recusou esta partida. Volta à Game Arena.</string>
+    <string name="arena_net_conn_lost">Ligação perdida, a voltar a ligar…</string>
+    <string name="arena_net_conn_error">Sem ligação ao servidor, a tentar outra vez…</string>
+    <string name="arena_net_local_error">Erro de rede neste telemóvel. Fecha outras apps de emulação e tenta outra vez.</string>
+    <string name="arena_exit_title">Terminar a partida?</string>
+    <string name="arena_exit_msg">Escolhe o resultado. A vitória só conta quando o adversário a confirmar. Sair a meio conta como derrota.</string>
+    <string name="arena_exit_won">Ganhei</string>
+    <string name="arena_exit_lost">Perdi / Desistir</string>
+    <string name="arena_exit_continue">Continuar a jogar</string>
+    <string name="arena_lost_confirm_title">Confirmas a derrota?</string>
+    <string name="arena_lost_confirm_msg">A partida termina e conta como derrota.</string>
+    <string name="arena_lost_confirm_yes">Sim, terminar</string>
+    <string name="arena_wait_title">À espera do adversário</string>
+    <string name="arena_wait_msg">O adversário tem de confirmar a tua vitória. Se saíres agora, a partida fica em análise.</string>
+    <string name="arena_wait_leave">Sair</string>
+    <string name="arena_wait_back">Voltar ao jogo</string>
+    <string name="arena_over_won">Ganhaste! 🏆</string>
+    <string name="arena_over_lost">Perdeste</string>
+    <string name="arena_over_draw">Empate</string>
+    <string name="arena_over_reason_dnf">Um jogador saiu da partida e não voltou: conta como derrota para ele.</string>
+    <string name="arena_over_reason_forfeit">Um jogador desistiu ou admitiu a derrota.</string>
+    <string name="arena_over_reason_agreed">Resultado confirmado pelos dois jogadores.</string>
+    <string name="arena_over_back">Voltar à Game Arena</string>
+    <string name="arena_busy">Já tens uma partida a decorrer. Termina-a primeiro com o botão Voltar.</string>
 
 </resources>

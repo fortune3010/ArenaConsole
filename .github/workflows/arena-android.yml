@@ -1,0 +1,69 @@
+# GA20_ARENA: build do Arena Console (APK assinado com a chave da Game Arena).
+# Secrets necessários (Settings > Secrets and variables > Actions):
+#   ARENA_KEYSTORE_BASE64  keystore em base64 (base64 -w0 arena.jks)
+#   ARENA_KEYSTORE_PASSWORD, ARENA_KEY_ALIAS, ARENA_KEY_PASSWORD
+# Sem os secrets, o APK sai assinado com a chave de debug PÚBLICA do PPSSPP (só para testes).
+name: Arena Console APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - arena
+    tags:
+      - "arena-v*"
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Tags do PPSSPP (para a versão do APK)
+        run: |
+          if [ "$(git tag -l 'v[0-9]*' | wc -l)" = "0" ]; then
+            git remote add upstream https://github.com/hrydgard/ppsspp.git || true
+            git fetch --deepen=15000 --no-recurse-submodules --tags --force upstream || true
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Keystore
+        env:
+          KS: ${{ secrets.ARENA_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/arena.jks"
+            echo "HAS_KEY=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build (release assinado)
+        if: env.HAS_KEY == '1'
+        run: >
+          ./gradlew assembleNormalRelease --stacktrace
+          -PRELEASE_STORE_FILE="$RUNNER_TEMP/arena.jks"
+          -PRELEASE_STORE_PASSWORD="${{ secrets.ARENA_KEYSTORE_PASSWORD }}"
+          -PRELEASE_KEY_ALIAS="${{ secrets.ARENA_KEY_ALIAS }}"
+          -PRELEASE_KEY_PASSWORD="${{ secrets.ARENA_KEY_PASSWORD }}"
+
+      - name: Build (teste, chave de debug pública)
+        if: env.HAS_KEY != '1'
+        run: ./gradlew assembleNormalOptimized --stacktrace
+
+      - name: Juntar APK
+        run: |
+          mkdir -p out
+          find android/build -name "*.apk" -exec cp {} out/ \;
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arena-console-apk
+          path: out/

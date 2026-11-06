@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GA20_ARENA (Fase 20.2.2): configuração do Arena Console. Não traduzir. -->
+<resources>
+    <!-- applicationId da Game Arena (o Launcher). Só esta app pode abrir partidas. -->
+    <string name="arena_launcher_package" translatable="false">com.gamearena</string>
+
+    <!-- SHA-256 dos certificados de assinatura da Game Arena (formato AA:BB:...). Pode ter vários (ex.: debug + release).
+         O script ga20-2-completo.js escreve aqui o valor de cert=...; o portão mostra o certificado instalado se não bater certo. -->
+    <string-array name="arena_launcher_certs_sha256" translatable="false">
+        <!-- GA20_ARENA_CERTS_BEGIN -->
+        <item>8D:20:27:F4:14:FA:57:9B:78:26:27:1C:C7:4D:B4:EB:F3:E1:93:BC:BE:D8:A1:AB:2C:FA:85:BF:0D:8F:D1:EC</item>
+        <!-- GA20_ARENA_CERTS_END -->
+    </string-array>
+
+    <!-- Código fonte desta versão (obrigatório pela GPL). -->
+    <string name="arena_source_url" translatable="false">https://github.com/fortune3010/arena-console</string>
+
+    <!-- Fundo do ícone próprio do Arena Console. -->
+    <color name="arena_ic_launcher_background">#010E1F</color>
+</resources>

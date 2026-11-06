@@ -64,6 +64,10 @@ dependencies {
 	implementation("androidx.appcompat:appcompat:1.7.1")
 	implementation("androidx.documentfile:documentfile:1.1.0")
 	implementation("com.google.protobuf:protobuf-javalite:4.35.1")
+	// GA20_ARENA: ponte de rede do Arena Console (Socket.IO até ao servidor da Game Arena). O Android já traz o org.json.
+	implementation("io.socket:socket.io-client:2.1.2") {
+		exclude(group = "org.json", module = "json")
+	}
 }
 
 protobuf {
@@ -190,7 +194,8 @@ android {
 	productFlavors {
 		create("normal") {
 			isDefault = true
-			applicationId = "org.ppsspp.ppsspp"
+			// GA20_ARENA: Arena Console instala-se ao lado do PPSSPP oficial. O namespace (org.ppsspp.ppsspp) fica: o JNI depende dele.
+			applicationId = "com.gamearena.console"
 			dimension = "variant"
 			externalNativeBuild {
 				cmake {

@@ -640,6 +640,7 @@ public:
 	bool bInfrastructureAutoDNS;
 	bool bAllowSavestateWhileConnected;  // Developer option, ini-only. No normal users need this, it's always wrong to save/load state when online.
 	bool bAllowSpeedControlWhileConnected;  // Useful in some games but not recommended.
+	bool bArenaLocked = false;  // GA20_ARENA: Arena Console (só em memória, posto pelo Java com "arena_lock").
 	// Developer options, ini-only: simulate a slower network for the ad hoc datagrams received.
 	int iAdhocSimDelayMs;  // Added to every datagram's delivery, in emulated time.
 	int iAdhocSimJitterMs;  // Up to this much more, at random (order is kept).

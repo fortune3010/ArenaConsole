@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GA20_ARENA: ícone próprio do Arena Console (comando estilizado), sem o logo do PPSSPP. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- corpo do comando -->
+    <path
+        android:fillColor="#3DFFA8"
+        android:pathData="M34,40 L74,40 C83,40 89,47 90,56 L92,68 C93,75 86,79 81,74 L73,66 L35,66 L27,74 C22,79 15,75 16,68 L18,56 C19,47 25,40 34,40 Z" />
+    <!-- cruz direcional -->
+    <path
+        android:fillColor="#010E1F"
+        android:pathData="M33,48 L39,48 L39,52 L43,52 L43,58 L39,58 L39,62 L33,62 L33,58 L29,58 L29,52 L33,52 Z" />
+    <!-- botões -->
+    <path
+        android:fillColor="#010E1F"
+        android:pathData="M72,49 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0 M79,55 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0 M65,55 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0 M72,61 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+</vector>

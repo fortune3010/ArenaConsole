@@ -551,6 +551,10 @@ void EmuScreen::sendMessage(UIMessage message, const char *value) {
 	// External commands, like from the Windows UI.
 	// This happens on the main thread.
 	if (message == UIMessage::REQUEST_GAME_PAUSE && screenManager()->topScreen() == this) {
+		if (g_Config.bArenaLocked) {
+			System_Notify(SystemNotification::ARENA_EXIT_REQUEST);  // GA20_ARENA: sem menu de pausa
+			return;
+		}
 		screenManager()->push(new GamePauseScreen(gamePath_, bootPending_));
 	} else if (message == UIMessage::REQUEST_GAME_STOP) {
 		// We will push MainScreen in update().
@@ -683,7 +687,7 @@ void EmuScreen::sendMessage(UIMessage message, const char *value) {
 				// If it's a TV (so no built-in back button), and there's no back button mapped to a pad,
 				// use this as the fallback way to get into the menu.
 				// Don't do it on the first resume though, in case we launch directly into emuscreen, like from a frontend - see #18926
-				if (!equals(value, "first")) {
+				if (!equals(value, "first") && !g_Config.bArenaLocked) {  // GA20_ARENA
 					screenManager()->push(new GamePauseScreen(gamePath_, bootPending_));
 				}
 			}
@@ -748,6 +752,31 @@ void EmuScreen::ProcessQueuedVKeys() {
 
 // Synchronized processing of virtkeys.
 void EmuScreen::ProcessVKey(VirtKey virtKey, bool down) {
+	// GA20_ARENA: no Arena Console só passam teclas que não mudam o jogo (sem menus, estados, velocidade, rewind, dev).
+	if (g_Config.bArenaLocked) {
+		switch (virtKey) {
+		case VIRTKEY_SCREENSHOT:
+		case VIRTKEY_TOGGLE_TILT:
+		case VIRTKEY_AXIS_SWAP_TOGGLE:
+		case VIRTKEY_TOGGLE_MOUSE:
+		case VIRTKEY_MUTE_TOGGLE:
+		case VIRTKEY_SCREEN_ROTATION_VERTICAL:
+		case VIRTKEY_SCREEN_ROTATION_VERTICAL180:
+		case VIRTKEY_SCREEN_ROTATION_HORIZONTAL:
+		case VIRTKEY_SCREEN_ROTATION_HORIZONTAL180:
+		case VIRTKEY_TOGGLE_FULLSCREEN:
+		case VIRTKEY_TOGGLE_TOUCH_CONTROLS:
+			break;
+		case VIRTKEY_PAUSE:
+		case VIRTKEY_EXIT_APP:
+			if (down) {
+				System_Notify(SystemNotification::ARENA_EXIT_REQUEST);
+			}
+			return;
+		default:
+			return;
+		}
+	}
 	auto mc = GetI18NCategory(I18NCat::MAPPABLECONTROLS);
 	auto sc = GetI18NCategory(I18NCat::SCREEN);
 
@@ -1140,6 +1169,9 @@ void EmuScreen::OnVKeyAnalog(VirtKey virtualKeyCode, float value) {
 	if (virtualKeyCode != VIRTKEY_SPEED_ANALOG) {
 		return;
 	}
+	if (g_Config.bArenaLocked) {
+		return;  // GA20_ARENA: sem velocidade analógica
+	}
 
 	// We only handle VIRTKEY_SPEED_ANALOG here.
 
@@ -1519,7 +1551,11 @@ void EmuScreen::update() {
 
 	if (pauseTrigger_) {
 		pauseTrigger_ = false;
-		screenManager()->push(new GamePauseScreen(gamePath_, bootPending_));
+		if (g_Config.bArenaLocked) {
+			System_Notify(SystemNotification::ARENA_EXIT_REQUEST);  // GA20_ARENA: sem menu de pausa
+		} else {
+			screenManager()->push(new GamePauseScreen(gamePath_, bootPending_));
+		}
 	}
 
 	if (!PSP_IsInited())

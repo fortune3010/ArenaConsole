@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GA20_ARENA: ícone do Arena Console para Android 5 a 7 (desenho vetorial sobre o fundo escuro). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/arena_ic_launcher_background" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/arena_ic_launcher_fg" />
+</layer-list>

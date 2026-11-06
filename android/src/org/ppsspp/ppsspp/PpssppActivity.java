@@ -148,6 +148,8 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 	// This is to avoid losing the game/menu state etc when we are just
 	// switched-away from or rotated etc.
 	private boolean shuttingDown;
+	// GA20_ARENA_V2: o Intent não era da Game Arena; esta Activity fechou-se no onCreate sem iniciar nada.
+	private boolean arenaRejected = false;
 	// Shutting down for a graphics restart (recreate), which comes back up in this process.
 	private boolean restarting;
 
@@ -737,6 +739,20 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 			return;
 		}
 
+		// GA20_ARENA_V2: o Arena Console só arranca com o Intent START_GAME da Game Arena (PendingIntent + certificado).
+		// Tudo o resto (outras apps, atalhos, ficheiros) vai para o portão "Abre pela Game Arena", sem tocar no C++.
+		ArenaGuard.Result arenaCheck = ArenaGuard.check(this, getIntent());
+		if (arenaCheck.ok && !ArenaConfig.prepare(this, arenaCheck.session)) {
+			arenaCheck = new ArenaGuard.Result(false, ArenaGuard.R_STORAGE, arenaCheck.session, arenaCheck.launcherCerts);
+		}
+		if (!arenaCheck.ok) {
+			Log.w(TAG, "GameArena: Intent recusado (" + arenaCheck.reason + ")");
+			arenaRejected = true;
+			ArenaGateActivity.open(this, arenaCheck);
+			finish();
+			return;
+		}
+
 		takeOver();
 
 		WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -785,6 +801,9 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 			Initialize();
 			initialized = true;
 		}
+		// GA20_ARENA_V2: tranca menus/atalhos no C++ (depois de carregar a configuração) e liga a ponte de rede.
+		NativeApp.sendMessageFromJava("arena_lock", "1");
+		ArenaNet.start(ArenaSession.current);
 
 		if (mPowerSaveModeReceiver == null) {
 			mPowerSaveModeReceiver = new PowerSaveModeReceiver(this);
@@ -805,6 +824,7 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 		surfaceManager.setSurfaceView(mSurfaceView);
 		setInsetsListener(mSurfaceView);
 		setContentView(mSurfaceView);
+		ArenaUi.attach(this);  // GA20_ARENA_V2: ecrã de carregamento + avisos da partida
 
 		// The render loop thread will be started once we get a surface.
 
@@ -820,6 +840,11 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 			// if we want to implement our own back previews.
 			@Override
 			public void handleOnBackPressed() {
+				if (ArenaSession.current != null) {
+					// GA20_ARENA_V2: no Arena Console, Voltar abre "Terminar a partida?" (nunca os menus do PPSSPP).
+					ArenaUi.showExitDialog(PpssppActivity.this);
+					return;
+				}
 				if (NativeApp.isAtTopLevel()) {
 					// Pass through to normal logic, allowing backing out of the main screen.
 					// The setEnabled dance seems to be the normal way of handling this, to avoid recursive loops.
@@ -1089,6 +1114,9 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 		if (m_hasNoNativeBinary) {
 			return;
 		}
+		if (arenaRejected) {
+			return;  // GA20_ARENA_V2: recusado no onCreate, nunca tocou no lado nativo
+		}
 		Log.i(TAG, "onDestroy begin");
 
 		mSurfaceView = null;
@@ -1123,6 +1151,8 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 			NativeApp.audioShutdown();
 			if (shuttingDown) {
 				Log.i(TAG, "in onDestroy, shutting down. Calling NativeApp.shutdown().");
+				ArenaNet.stop();  // GA20_ARENA_V2: fecha a ponte de rede da partida
+				ArenaSession.current = null;
 				NativeApp.shutdown();
 				unregisterCallbacks();
 				initialized = false;
@@ -1916,6 +1946,13 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 				Log.e(TAG, "Can't vibrate, no surface view");
 			}
 			return true;
+		} else if (command.equals("arena_exit")) {
+			// GA20_ARENA_V2: pausa/sair pedidos dentro do jogo (C++ com bArenaLocked).
+			ArenaUi.showExitDialog(this);
+			return true;
+		} else if (command.equals("arena_boot_done")) {
+			ArenaUi.hideLoading(this);
+			return true;
 		} else if (command.equals("finish")) {
 			Log.i(TAG, "Setting shuttingDown = true and calling Finish");
 			shuttingDown = true;
@@ -2117,6 +2154,22 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 	}
 
 	private static String parseIntent(Intent intent) {
+		// GA20_ARENA: Intent do Launcher GameArena (com.gamearena.console.START_GAME). A ISO arranca direto,
+		// pelo mesmo caminho dos atalhos. Os dados de rede ficam em ArenaSession.current (netplay: Fase 20.2.2).
+		ArenaSession arena = ArenaSession.fromIntent(intent);
+		if (arena != null) {
+			// GA20_ARENA_V2: a mesma partida com o jogo já a correr (Activity recriada): não volta a arrancar o jogo.
+			if (initialized && ArenaConfig.sameMatch(ArenaSession.current, arena)) {
+				return null;
+			}
+			ArenaSession.current = arena;
+			if (arena.bootTarget != null) {
+				// --pause-menu-exit --memstick=<pasta privada> --appendconfig=arena.ini (ArenaConfig.prepare no onCreate)
+				String arenaArgs = ArenaConfig.pendingArgs();
+				return "\"" + arena.bootTarget.replace("\\", "\\\\").replace("\"", "\\\"") + "\"" + (arenaArgs.isEmpty() ? "" : " " + arenaArgs);
+			}
+			Log.w(TAG, "GameArena: Intent sem ISO legível, a abrir o menu normal.");
+		}
 		Uri data = intent.getData();
 		String args = intent.getStringExtra(ARGS_EXTRA_KEY);
 		if (data != null) {
@@ -2168,6 +2221,12 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 		}
 
 		Log.i(TAG, "onNewIntent: " + intent.toString());
+
+		// GA20_ARENA_V2: com o jogo a correr, outro Intent não arranca nada (só traz a partida para a frente).
+		if (!intent.hasExtra("request_id")) {
+			ArenaUi.onNewIntentWhilePlaying(this, intent);
+			return;
+		}
 
 		if (intent.hasExtra("request_id")) {
 			logIntentExtras(intent);

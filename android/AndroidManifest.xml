@@ -38,6 +38,11 @@
     <!-- AndroidX minimum SDK workaround. We don't care if it's broken on older versions. -->
     <uses-sdk tools:overrideLibrary="androidx.appcompat.resources,androidx.appcompat,androidx.fragment,androidx.drawerlayout,androidx.vectordrawable.animated,androidx.vectordrawable,androidx.viewpager,androidx.loader,androidx.activity,androidx.annotation,androidx.customview,androidx.cursoradapter,androidx.arch,androidx.collection,androidx.core,androidx.versionedparcelable,androidx.interpolator,androidx.lifecycle,androidx.loader,androidx.savedstate,androidx.lifecycle.viewmodel,androidx.lifecycle.livedata,androidx.lifecycle.livedata.core,androidx.arch.core,androidx.documentfile"/>
 
+    <!-- GA20_ARENA_V2: ver a Game Arena (Android 11+) para verificar a assinatura e abri-la a partir do portão. -->
+    <queries>
+        <package android:name="com.gamearena" />
+    </queries>
+
     <supports-screens
         android:largeScreens="true"
         android:normalScreens="true"
@@ -45,7 +50,7 @@
         android:xlargeScreens="true" />
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/arena_ic_launcher"
         android:label="@string/app_name"
         android:appCategory="game"
         android:isGame="true"
@@ -61,59 +66,29 @@
 			android:resizeableActivity="true"
             android:exported="true">
             <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
+            <!-- GA20_ARENA_V2: o ícone (MAIN/LAUNCHER) passou para o ArenaGateActivity ("Abre pela Game Arena"). -->
+            <!-- GA20_ARENA: Launcher GameArena (Arena Console). A ISO vem por content:// no ClipData, sem data. -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="com.gamearena.console.START_GAME" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="file" />
-                <data android:scheme="content" />
-                <data android:mimeType="*/*" />
-                <data android:host="*" />
-                <data android:pathPattern=".*\\.iso" />
-                <data android:pathPattern=".*\\..*\\.iso" />
-                <data android:pathPattern=".*\\..*\\..*\\.iso" />
-                <data android:pathPattern=".*\\.cso" />
-                <data android:pathPattern=".*\\..*\\.cso" />
-                <data android:pathPattern=".*\\..*\\..*\\.cso" />
-                <data android:pathPattern=".*\\.chd" />
-                <data android:pathPattern=".*\\..*\\.chd" />
-                <data android:pathPattern=".*\\..*\\..*\\.chd" />
-                <data android:pathPattern=".*\\.elf" />
-                <data android:pathPattern=".*\\..*\\.elf" />
-                <data android:pathPattern=".*\\..*\\..*\\.elf" />
-                <data android:pathPattern=".*\\.ISO" />
-                <data android:pathPattern=".*\\..*\\.ISO" />
-                <data android:pathPattern=".*\\..*\\..*\\.ISO" />
-                <data android:pathPattern=".*\\.CSO" />
-                <data android:pathPattern=".*\\..*\\.CSO" />
-                <data android:pathPattern=".*\\..*\\..*\\.CSO" />
-                <data android:pathPattern=".*\\.ELF" />
-                <data android:pathPattern=".*\\..*\\.ELF" />
-                <data android:pathPattern=".*\\..*\\..*\\.ELF" />
-                <data android:pathPattern=".*\\.CHD" />
-                <data android:pathPattern=".*\\..*\\.CHD" />
-                <data android:pathPattern=".*\\..*\\..*\\.CHD" />
-                <data android:pathPattern=".*\\.ppdmp" />
-                <data android:pathPattern=".*\\.pbp" />
             </intent-filter>
+            <!-- GA20_ARENA_V2: sem abrir ISOs pelo gestor de ficheiros (só partidas da Game Arena). -->
         </activity>
         <meta-data android:name="isGame" android:value="true" />
+        <!-- GA20_ARENA_V2: o ícone abre o portão "Abre pela Game Arena" (não carrega o emulador). -->
         <activity
-            android:name=".ShortcutActivity"
-            android:label="@string/shortcut_name"
-            android:exported="true">
+            android:name=".ArenaGateActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- GA20_ARENA_V2: sem atalhos para jogos soltos. -->
+        <activity android:name=".ShortcutActivity" android:label="@string/shortcut_name" android:exported="false" />
 		<activity android:name=".ImageResultProxyActivity"
 			android:theme="@style/Theme.ProxyTransparent"
 			android:launchMode="standard" />
@@ -122,7 +97,7 @@
 			android:launchMode="standard" />
 		<receiver
 			android:name=".AchievementsHostOverrideReceiver"
-			android:exported="true">
+			android:exported="false">
 			<intent-filter>
 				<action android:name="org.ppsspp.ppsspp.action.SET_ACHIEVEMENTS_HOST_OVERRIDE" />
 				<action android:name="org.ppsspp.ppsspp.action.CLEAR_ACHIEVEMENTS_HOST_OVERRIDE" />

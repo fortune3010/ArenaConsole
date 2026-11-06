@@ -286,6 +286,7 @@ enum class SystemNotification {
 	BEFORE_CONFIG_SAVE_ON_EXIT,
 	TOP_LEVEL_CHANGED,  // NativeIsAtTopLevel() changed. From the render thread.
 	EXTERNAL_DISPLAY_CHANGED,  // g_Config.iExternalDisplay changed.
+	ARENA_EXIT_REQUEST,  // GA20_ARENA: pausa/sair no Arena Console. O Android mostra o diálogo "Terminar a partida?".
 };
 
 // I guess it's not super great architecturally to centralize this, since it's not general - but same with a lot of

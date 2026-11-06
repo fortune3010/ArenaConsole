@@ -40,7 +40,9 @@ jobs:
           KS: ${{ secrets.ARENA_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KS" ]; then
-            echo "$KS" | base64 -d > "$RUNNER_TEMP/arena.jks"
+            CLEAN_KS=$(echo "$KS" | tr -d ' \n\r')
+          echo "$CLEAN_KS" | base64 -d > "$RUNNER_TEMP/arena.jks"
+          echo "Keystore size: $(wc -c < "$RUNNER_TEMP/arena.jks") bytes"
             echo "HAS_KEY=1" >> "$GITHUB_ENV"
           fi
 

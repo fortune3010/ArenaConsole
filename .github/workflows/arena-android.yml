@@ -40,26 +40,17 @@ jobs:
           KS: ${{ secrets.ARENA_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KS" ]; then
-            # 1. Limpar a string (remover quebras de linha e espaços)
-            KS_CLEAN=$(echo "$KS" | tr -d '\n\r ')
-            
-            # 2. Adicionar o padding '=' que o Linux base64 exige
-            LEN=${#KS_CLEAN}
-            REM=$((LEN % 4))
-            if [ $REM -eq 2 ]; then KS_CLEAN="${KS_CLEAN}=="; fi
-            if [ $REM -eq 3 ]; then KS_CLEAN="${KS_CLEAN}="; fi
-            
-            # 3. Descodificar
-            echo "$KS_CLEAN" | base64 --decode --ignore-garbage > "$RUNNER_TEMP/arena.jks"
-            
-            if [ ! -s "$RUNNER_TEMP/arena.jks" ]; then
-              echo "ERRO: Keystore vazio ou inválido"
-              exit 1
-            fi
-            echo "Keystore size: $(wc -c < "$RUNNER_TEMP/arena.jks") bytes"
+            node -e "
+              const fs = require('fs');
+              const s = process.env.KS || '';
+              const clean = s.replace(/[^A-Za-z0-9+/=]/g, '');
+              const buf = Buffer.from(clean, 'base64');
+              if (buf.length === 0) process.exit(1);
+              fs.writeFileSync(process.env.RUNNER_TEMP + '/arena.jks', buf);
+              console.log('Keystore size:', buf.length, 'bytes');
+            "
             echo "HAS_KEY=1" >> "$GITHUB_ENV"
           fi
-
       - name: Build (release assinado)
         if: env.HAS_KEY == '1'
         run: >

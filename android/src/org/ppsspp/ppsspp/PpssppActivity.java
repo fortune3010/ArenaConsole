@@ -2123,7 +2123,7 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 				// In a folder picked through the storage access framework. Our access to it can be passed on.
 				uri = Uri.parse(path);
 			} else {
-				uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", new File(path));
+				uri = FileProvider.getUriForFile(this, getPackageName() + ".arenafileprovider", new File(path));
 			}
 			if (mimeType.isEmpty()) {
 				// Document URIs have the path encoded, so decode before looking for the extension.

@@ -106,7 +106,7 @@
 		<!-- For sharing our files with other apps (System_ShareFile). Each share grants access to one file. -->
 		<provider
 			android:name="androidx.core.content.FileProvider"
-			android:authorities="${applicationId}.fileprovider"
+			android:authorities="${applicationId}.arenafileprovider"
 			android:exported="false"
 			android:grantUriPermissions="true">
 			<meta-data

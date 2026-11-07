@@ -105,6 +105,7 @@ public final class ArenaWatchJava {
 						main.postDelayed(ArenaWatchJava::queryDisc, 3000);  // o jogo ainda não carregou o PARAM.SFO
 						return;
 					}
+					Log.i(TAG, "disc=" + d + " regras=" + (rules == null ? "null" : String.valueOf(rules.names())));
 					JSONObject r = rules == null ? null : rules.optJSONObject(d);
 					if (r == null) Log.i(TAG, "sem regra para " + d + ": fica o diálogo manual");
 					else if (!started) start(r);

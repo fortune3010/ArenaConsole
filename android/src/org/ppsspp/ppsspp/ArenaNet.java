@@ -194,6 +194,7 @@ public final class ArenaNet {
 			s.on("emu_ready", a -> {
 				ready = true;
 				JSONObject m = a.length > 0 && a[0] instanceof JSONObject ? (JSONObject) a[0] : new JSONObject();
+				Log.d(TAG, "emu_ready chaves=" + m.names() + " rules=" + m.opt("rules"));
 				ArenaWatchJava.setRules(m.optJSONObject("rules"));
 				status(m.optBoolean("peerOnline") ? ST_PEER_ONLINE : ST_WAITING_PEER);
 				for (Stream st : streams.values()) st.openRemote();

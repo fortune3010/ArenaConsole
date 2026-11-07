@@ -57,12 +57,14 @@ public final class ArenaSession {
 	public final int protocol;
 	/** true se todos os dados de rede passaram a validação (role, ids, código, token, servidor, protocolo). */
 	public final boolean netplayReady;
+    /** GA20_SOLO: Treino = Intent sem role/room/token/peer. Só ISO, sem rede. */
+    public final boolean solo;
 	/** Motivo pelo qual netplayReady é false ("" se estiver tudo bem). */
 	public final String netplayError;
 
 	private ArenaSession(String bootTarget, String isoName, String isoFingerprint, String gameId,
 	                     String role, String peerId, String remotePeerId, String roomCode, String startToken,
-	                     String serverUrl, String signalNamespace, int protocol, String netplayError) {
+	                     String serverUrl, String signalNamespace, int protocol, String netplayError, boolean solo) {
 		this.bootTarget = bootTarget;
 		this.isoName = isoName;
 		this.isoFingerprint = isoFingerprint;
@@ -76,7 +78,8 @@ public final class ArenaSession {
 		this.signalNamespace = signalNamespace;
 		this.protocol = protocol;
 		this.netplayError = netplayError;
-		this.netplayReady = netplayError.isEmpty();
+		this.solo = solo; // GA20_SOLO
+        this.netplayReady = !solo && netplayError.isEmpty();
 	}
 
 	public boolean isHost() {
@@ -111,13 +114,14 @@ public final class ArenaSession {
 		int protocol = integer(loose, grouped, "protocol_version");
 
 		String boot = pickBootTarget(intent, isoUri, isoPath);
-		String err = validateNet(role, peerId, remotePeerId, roomCode, startToken, serverUrl, ns, protocol);
+		final boolean solo = role.isEmpty() && roomCode.isEmpty() && startToken.isEmpty() && peerId.isEmpty(); // GA20_SOLO
+        String err = solo ? "" : validateNet(role, peerId, remotePeerId, roomCode, startToken, serverUrl, ns, protocol);
 		if (!fp.isEmpty() && !FP_RE.matcher(fp).matches()) {
 			fp = "";
 		}
 
 		ArenaSession s = new ArenaSession(boot, isoName, fp, gameId, role, peerId, remotePeerId, roomCode,
-			err.isEmpty() ? startToken : "", serverUrl, ns, protocol, err);
+			err.isEmpty() ? startToken : "", serverUrl, ns, protocol, err, solo);
 		Log.i(TAG, s.toString());
 		return s;
 	}
@@ -201,6 +205,6 @@ public final class ArenaSession {
 			+ ", iso=" + isoName + (gameId.isEmpty() ? "" : " [" + gameId + "]")
 			+ ", role=" + role + ", room=" + roomCode + ", peer=" + peerId + ", remote=" + remotePeerId
 			+ ", server=" + serverUrl + signalNamespace + ", protocol=" + protocol
-			+ ", netplay=" + (netplayReady ? "ok" : "NÃO (" + netplayError + ")") + "}";
+			+ ", netplay=" + (solo ? "SOLO" : netplayReady ? "ok" : "NÃO (" + netplayError + ")") + "}";
 	}
 }

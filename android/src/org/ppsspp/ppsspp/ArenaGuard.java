@@ -101,7 +101,7 @@ public final class ArenaGuard {
 		if (s.bootTarget == null) {
 			return new Result(false, R_NO_ISO, s, installed);
 		}
-		if (!s.netplayReady) {
+		if (!s.solo && !s.netplayReady) { // GA20_SOLO: permitir modo treino
 			Log.w(TAG, "Dados de rede inválidos: " + s.netplayError);
 			return new Result(false, R_BAD_NET, s, installed);
 		}

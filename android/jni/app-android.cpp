@@ -4,6 +4,8 @@
 // It calls a set of methods defined in NativeApp.h. These should be implemented
 // by your game or app.
 
+#include <thread>
+#include "Core/ArenaScan.h"
 #include "ppsspp_config.h"
 
 #if PPSSPP_PLATFORM(ANDROID)
@@ -1463,6 +1465,9 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendMessageFromJava(JNI
 	} else if (msg == "permission_granted") {
 		SetPermissionStatusFromJava(prm, PERMISSION_STATUS_GRANTED);
 		System_PostUIMessage(UIMessage::PERMISSION_GRANTED, prm);
+	} else if (msg == "arena_scan") {
+		std::string labCmd = prm;
+		std::thread([labCmd]() { PushCommand("arena_scan_result", ArenaScan::Command(labCmd)); }).detach();
 	} else if (msg == "arena_lock") {
 		// GA20_ARENA: Arena Console. Sem menus/atalhos (EmuScreen) e sem opções que mudam o jogo.
 		g_Config.bArenaLocked = (prm == "1");

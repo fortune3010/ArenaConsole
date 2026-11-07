@@ -824,7 +824,8 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 		surfaceManager.setSurfaceView(mSurfaceView);
 		setInsetsListener(mSurfaceView);
 		setContentView(mSurfaceView);
-		ArenaUi.attach(this);  // GA20_ARENA_V2: ecrã de carregamento + avisos da partida
+		ArenaUi.attach(this);
+		ArenaLab.attach(this);  // GA20_ARENA_V2: ecrã de carregamento + avisos da partida
 
 		// The render loop thread will be started once we get a surface.
 
@@ -2104,6 +2105,9 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 				NativeApp.reportException(e, params);
 				return false;
 			}
+		} else if (command.equals("arena_scan_result")) {
+			ArenaLab.onResult(params);
+			return true;
 		} else if (command.equals("copy_to_clipboard")) {
 			ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 			ClipData clip = ClipData.newPlainText("Copied Text", params);

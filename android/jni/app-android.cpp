@@ -6,6 +6,7 @@
 
 #include <thread>
 #include "Core/ArenaScan.h"
+#include "Core/ArenaWatch.h"
 #include "ppsspp_config.h"
 
 #if PPSSPP_PLATFORM(ANDROID)
@@ -1465,6 +1466,9 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendMessageFromJava(JNI
 	} else if (msg == "permission_granted") {
 		SetPermissionStatusFromJava(prm, PERMISSION_STATUS_GRANTED);
 		System_PostUIMessage(UIMessage::PERMISSION_GRANTED, prm);
+	} else if (msg == "arena_watch") {
+		std::string watchCmd = prm;
+		std::thread([watchCmd]() { PushCommand("arena_watch_msg", ArenaWatch::Command(watchCmd, [](const std::string &r) { PushCommand("arena_watch_msg", r); })); }).detach();
 	} else if (msg == "arena_scan") {
 		std::string labCmd = prm;
 		std::thread([labCmd]() { PushCommand("arena_scan_result", ArenaScan::Command(labCmd, [](const std::string &r) { PushCommand("arena_scan_result", r); })); }).detach();

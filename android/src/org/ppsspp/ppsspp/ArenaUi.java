@@ -146,6 +146,7 @@ public final class ArenaUi {
 	/** O C++ avisou que o jogo arrancou (SystemNotification::BOOT_DONE). */
 	public static void hideLoading(PpssppActivity act) {
 		if (ArenaSession.current != null) bootedMatch = ArenaSession.current;
+		ArenaWatchJava.onBoot();
 		final View v = loading.get();
 		if (v == null) return;
 		loading = new WeakReference<>(null);

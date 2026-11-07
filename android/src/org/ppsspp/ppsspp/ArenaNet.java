@@ -142,6 +142,20 @@ public final class ArenaNet {
 		n.sendResult();
 	}
 
+	/** GA20_WATCH: envia ao servidor o resultado lido da RAM (emu_auto). */
+	public static boolean sendAuto(JSONObject o) {
+		ArenaNet n = instance;
+		io.socket.client.Socket s = n == null ? null : n.sock;
+		if (s == null || !n.ready) return false;
+		try {
+			s.emit("emu_auto", o);
+			return true;
+		} catch (Exception e) {
+			android.util.Log.e("ArenaNet", "emu_auto: " + e.getMessage());
+			return false;
+		}
+	}
+
 	public static boolean isOver() {
 		ArenaNet n = instance;
 		return n != null && n.overWinner != null;
@@ -180,6 +194,7 @@ public final class ArenaNet {
 			s.on("emu_ready", a -> {
 				ready = true;
 				JSONObject m = a.length > 0 && a[0] instanceof JSONObject ? (JSONObject) a[0] : new JSONObject();
+				ArenaWatchJava.setRules(m.optJSONObject("rules"));
 				status(m.optBoolean("peerOnline") ? ST_PEER_ONLINE : ST_WAITING_PEER);
 				for (Stream st : streams.values()) st.openRemote();
 				sendResult();

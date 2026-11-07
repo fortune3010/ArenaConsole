@@ -287,7 +287,9 @@ add_library(Core STATIC
 	ControlMapper.h
 	Core.cpp
 	ArenaScan.cpp
-	ArenaScan.h
+	
+ArenaWatch.cpp
+ArenaWatch.hArenaScan.h
 	Core.h
 	Compatibility.cpp
 	Compatibility.h

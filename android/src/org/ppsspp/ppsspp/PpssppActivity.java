@@ -2105,6 +2105,9 @@ public class PpssppActivity extends AppCompatActivity implements SensorEventList
 				NativeApp.reportException(e, params);
 				return false;
 			}
+		} else if (command.equals("arena_watch_msg")) {
+			ArenaWatchJava.onMsg(params);
+			return true;
 		} else if (command.equals("arena_scan_result")) {
 			ArenaLab.onResult(params);
 			return true;

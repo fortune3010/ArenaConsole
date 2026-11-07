@@ -100,7 +100,7 @@ public final class ArenaLab {
 
 	/** Chamado pelo PpssppActivity depois do ArenaUi.attach. Nas partidas da Arena (sessão do Launcher) nunca aparece. */
 	public static void attach(final PpssppActivity a) {
-		if (ArenaSession.current != null) return;
+		// GA20_LAB: condicao removida para testes de mapeamento
 		if (root != null && root.getContext() == a && root.getParent() != null) return;
 		actRef = new WeakReference<>(a);
 		sel = null;

@@ -25,6 +25,13 @@
 
 extern ParamSFOData g_paramSFO;
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#define AW_LOGI(...) __android_log_print(ANDROID_LOG_INFO, "ArenaWatch", __VA_ARGS__)
+#else
+#define AW_LOGI(...) ((void)0)
+#endif
+
 namespace ArenaWatch {
 
 static std::atomic<bool> g_running(false);
@@ -70,14 +77,21 @@ static void Run(Cfg c, Notify notify) {
 #endif
 	bool armed = false;
 	int lastKo = 0, streak = 0, p1Wins = 0, p2Wins = 0;
+	int tick = 0, bad = 0;
+	const int every = 5000 / c.ms > 0 ? 5000 / c.ms : 1;
+	AW_LOGI("a ler p1@0x%08x(w%d) p2@0x%08x(w%d) hold=%d rounds=%d ms=%d", c.a1, c.w1, c.a2, c.w2, c.hold, c.rounds, c.ms);
 	while (!g_stop) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(c.ms));
 		uint32_t v1 = 0, v2 = 0;
-		if (!Read(c.a1, c.w1, v1) || !Read(c.a2, c.w2, v2))
+		if (!Read(c.a1, c.w1, v1) || !Read(c.a2, c.w2, v2)) {
+			if (bad++ % every == 0) AW_LOGI("leitura invalida");
 			continue;
+		}
+		if (tick++ % every == 0) AW_LOGI("p1=%u p2=%u armado=%d wins=%d/%d", v1, v2, armed ? 1 : 0, p1Wins, p2Wins);
 		if (!armed) {
 			if (v1 > 0 && v2 > 0) {
 				armed = true;
+				AW_LOGI("armado: p1=%u p2=%u", v1, v2);
 				lastKo = 0;
 				streak = 0;
 			}
@@ -98,6 +112,7 @@ static void Run(Cfg c, Notify notify) {
 		if (streak < c.hold)
 			continue;
 		armed = false;  // KO confirmado: espera o próximo round (as duas vidas > 0)
+		AW_LOGI("KO ko=%d p1=%u p2=%u", ko, v1, v2);
 		lastKo = 0;
 		streak = 0;
 		if (ko == 3) {

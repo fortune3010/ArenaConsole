@@ -149,6 +149,7 @@ public final class ArenaNet {
 		if (s == null || !n.ready) return false;
 		try {
 			s.emit("emu_auto", o);
+			Log.i(TAG, "Enviado emu_auto final=" + o.optBoolean("final"));
 			return true;
 		} catch (Exception e) {
 			android.util.Log.e("ArenaNet", "emu_auto: " + e.getMessage());
@@ -232,7 +233,7 @@ public final class ArenaNet {
 			});
 			s.on(io.socket.client.Socket.EVENT_DISCONNECT, a -> {
 				ready = false;
-				Log.w(TAG, "Ligação ao servidor perdida");
+				Log.w(TAG, "Ligação ao servidor perdida: " + (a.length > 0 ? String.valueOf(a[0]) : "?"));
 				status(ST_CONN_LOST);
 				// O estado ad hoc do servidor perde-se: fecha as ligações do PPSSPP para ele voltar a ligar-se.
 				for (Stream st : new ArrayList<>(streams.values())) st.close(false);

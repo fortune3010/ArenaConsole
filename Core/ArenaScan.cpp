@@ -284,6 +284,19 @@ std::string Command(const std::string &line, const Notify &notify) {
 		return "{\"ok\":true,\"cmd\":\"get\",\"a\":\"" + Hex(addr) + "\",\"w\":" + std::to_string(w) + ",\"v\":" + std::to_string(v) + "}";
 	}
 
+	if (c == "peek") {
+		std::string s1, s2;
+		int w1 = 2, w2 = 2;
+		in >> s1 >> w1 >> s2 >> w2;
+		const uint32_t a1 = (uint32_t)strtoul(s1.c_str(), nullptr, 0), a2 = (uint32_t)strtoul(s2.c_str(), nullptr, 0);
+		if ((w1 != 1 && w1 != 2 && w1 != 4) || (w2 != 1 && w2 != 2 && w2 != 4) || !PSP_IsInited() || !Memory::IsValidRange(a1, w1) || !Memory::IsValidRange(a2, w2))
+			return Err(c, "endereco invalido");
+		uint32_t v1 = 0, v2 = 0;
+		memcpy(&v1, Memory::GetPointerUnchecked(a1), w1);
+		memcpy(&v2, Memory::GetPointerUnchecked(a2), w2);
+		return "{\"ok\":true,\"cmd\":\"peek\",\"p1\":" + std::to_string(v1) + ",\"p2\":" + std::to_string(v2) + "}";
+	}
+
 	if (c == "tag") {
 		std::string k, a;
 		int w = g_w;

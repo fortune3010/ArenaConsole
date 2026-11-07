@@ -135,7 +135,8 @@ public final class ArenaLab {
 			btn(a, "Mudou", v -> send("diff"))));
 		panel.addView(row(a,
 			btn(a, "Auto-Scan (Luta)", v -> askAuto(a)),
-			btn(a, "Parar", v -> send("stop"))));
+			btn(a, "Parar", v -> send("stop")),
+			btn(a, "Ver vidas", v -> toggleVidas(a))));
 		panel.addView(row(a,
 			btn(a, "Valor…", v -> askValue(a)),
 			btn(a, "Guardar", v -> save(a)),
@@ -221,6 +222,64 @@ public final class ArenaLab {
 			.show();
 	}
 
+	private static boolean vidasMode = false;
+	private static String vA1, vA2;
+	private static int vW1 = 2, vW2 = 2;
+	private static final Runnable vidasPoll = new Runnable() {
+		@Override
+		public void run() {
+			if (!vidasMode || panel == null || panel.getVisibility() != View.VISIBLE) {
+				vidasMode = false;
+				return;
+			}
+			send("peek " + vA1 + " " + vW1 + " " + vA2 + " " + vW2);
+			main.postDelayed(this, 500);
+		}
+	};
+
+	private static void toggleVidas(PpssppActivity a) {
+		if (vidasMode) {
+			vidasMode = false;
+			main.removeCallbacks(vidasPoll);
+			watch.setText("");
+			return;
+		}
+		try {
+			File best = null;
+			File[] fs = new File(a.getFilesDir(), "arena").listFiles();
+			if (fs != null) {
+				for (File f : fs) {
+					if (f.getName().startsWith("lab-") && f.getName().endsWith(".json") && (best == null || f.lastModified() > best.lastModified())) best = f;
+				}
+			}
+			if (best == null) {
+				Toast.makeText(a, "Faz Exportar primeiro (com vida_p1 e vida_p2 guardados)", Toast.LENGTH_LONG).show();
+				return;
+			}
+			byte[] raw = new byte[(int) best.length()];
+			try (java.io.DataInputStream in = new java.io.DataInputStream(new java.io.FileInputStream(best))) {
+				in.readFully(raw);
+			}
+			JSONArray tags = new JSONObject(new String(raw, StandardCharsets.UTF_8)).optJSONArray("tags");
+			vA1 = null; vA2 = null;
+			for (int i = 0; tags != null && i < tags.length(); i++) {
+				JSONObject t = tags.getJSONObject(i);
+				if ("vida_p1".equals(t.optString("k"))) { vA1 = t.optString("a"); vW1 = t.optInt("w", 2); }
+				if ("vida_p2".equals(t.optString("k"))) { vA2 = t.optString("a"); vW2 = t.optInt("w", 2); }
+			}
+			if (vA1 == null || vA2 == null) {
+				Toast.makeText(a, "O export não tem vida_p1 e vida_p2", Toast.LENGTH_LONG).show();
+				return;
+			}
+			vidasMode = true;
+			status.setText("Vidas ao vivo (" + best.getName() + "): leva e dá golpes");
+			main.removeCallbacks(vidasPoll);
+			main.post(vidasPoll);
+		} catch (Exception e) {
+			status.setText("Ver vidas: " + e.getMessage());
+		}
+	}
+
 	private static void save(final PpssppActivity a) {
 		if (sel == null) {
 			Toast.makeText(a, "Toca primeiro num candidato da lista", Toast.LENGTH_SHORT).show();
@@ -270,6 +329,10 @@ public final class ArenaLab {
 				String c = o.optString("cmd");
 				if (!o.optBoolean("ok")) {
 					status.setText("Erro: " + o.optString("err"));
+					return;
+				}
+				if ("peek".equals(c)) {
+					watch.setText("P1 = " + o.optLong("p1") + "     P2 = " + o.optLong("p2"));
 					return;
 				}
 				if ("autop".equals(c)) {

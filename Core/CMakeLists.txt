@@ -289,7 +289,8 @@ add_library(Core STATIC
 	ArenaScan.cpp
 	
 ArenaWatch.cpp
-ArenaWatch.hArenaScan.h
+ArenaWatch.h
+    ArenaScan.h
 	Core.h
 	Compatibility.cpp
 	Compatibility.h

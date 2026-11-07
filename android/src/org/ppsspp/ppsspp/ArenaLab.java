@@ -44,6 +44,8 @@ public final class ArenaLab {
 	private static TextView status, watch;
 	private static int width = 2;
 	private static String sel = null;
+	private static int selW = 2;
+	private static final List<Integer> rowW = new ArrayList<>();
 	private static final List<String> addrs = new ArrayList<>();
 	private static final List<TextView> rows = new ArrayList<>();
 
@@ -51,7 +53,7 @@ public final class ArenaLab {
 		@Override
 		public void run() {
 			if (panel == null || panel.getVisibility() != View.VISIBLE || sel == null) return;
-			send("get " + sel + " " + width);
+			send("get " + sel + " " + selW);
 			main.postDelayed(this, 800);
 		}
 	};
@@ -106,6 +108,7 @@ public final class ArenaLab {
 		sel = null;
 		addrs.clear();
 		rows.clear();
+		rowW.clear();
 		root = new FrameLayout(a);
 
 		panel = new LinearLayout(a);
@@ -118,7 +121,9 @@ public final class ArenaLab {
 		list.setOrientation(LinearLayout.VERTICAL);
 		panel.addView(status);
 		panel.addView(watch);
-		panel.addView(list);
+		android.widget.ScrollView sv = new android.widget.ScrollView(a);
+		sv.addView(list);
+		panel.addView(sv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ArenaUi.dp(root, 170)));
 		panel.addView(row(a,
 			btn(a, "Novo 2B", v -> novo(2)),
 			btn(a, "Novo 4B", v -> novo(4)),
@@ -128,6 +133,9 @@ public final class ArenaLab {
 			btn(a, "Aumentou", v -> send("inc")),
 			btn(a, "Igual", v -> send("same")),
 			btn(a, "Mudou", v -> send("diff"))));
+		panel.addView(row(a,
+			btn(a, "Auto-Scan (Luta)", v -> askAuto(a)),
+			btn(a, "Parar", v -> send("stop"))));
 		panel.addView(row(a,
 			btn(a, "Valor…", v -> askValue(a)),
 			btn(a, "Guardar", v -> save(a)),
@@ -170,6 +178,8 @@ public final class ArenaLab {
 
 	private static void select(String addr) {
 		sel = addr;
+		int ix = addrs.indexOf(addr);
+		selW = ix >= 0 && ix < rowW.size() ? rowW.get(ix) : width;
 		for (int i = 0; i < rows.size(); i++) {
 			rows.get(i).setTextColor(addrs.get(i).equals(addr) ? ArenaUi.NEON : Color.WHITE);
 		}
@@ -192,6 +202,22 @@ public final class ArenaLab {
 				if (!s.isEmpty()) send("eq " + s);
 			})
 			.setNegativeButton("Cancelar", null)
+			.show();
+	}
+
+	private static void askAuto(final PpssppActivity a) {
+		final int[] secs = { 30, 60, 120 };
+		dlg(a).setTitle("Auto-Scan: quanto tempo?")
+			.setItems(new String[] { "30 s", "60 s", "120 s" }, (d, i) -> {
+				sel = null;
+				list.removeAllViews();
+				addrs.clear();
+				rowW.clear();
+				rows.clear();
+				watch.setText("");
+				status.setText("A iniciar… luta normalmente");
+				send("auto " + secs[i]);
+			})
 			.show();
 	}
 
@@ -225,10 +251,11 @@ public final class ArenaLab {
 		Toast.makeText(a, "JSON copiado", Toast.LENGTH_SHORT).show();
 	}
 
-	private static void addRow(final PpssppActivity a, final String addr, long v) {
-		TextView t = tv(a, addr + " = " + v);
+	private static void addRow(final PpssppActivity a, final String addr, long v, int w, String extra) {
+		TextView t = tv(a, addr + " w" + w + " = " + v + (extra.isEmpty() ? "" : "  " + extra));
 		t.setOnClickListener(x -> select(addr));
 		addrs.add(addr);
+		rowW.add(w);
 		rows.add(t);
 		list.addView(t);
 	}
@@ -245,6 +272,14 @@ public final class ArenaLab {
 					status.setText("Erro: " + o.optString("err"));
 					return;
 				}
+				if ("autop".equals(c)) {
+					status.setText("A gravar " + o.optInt("t") + "/" + o.optInt("total") + " s: luta normalmente (leva golpes em segundos diferentes)");
+					return;
+				}
+				if ("stop".equals(c)) {
+					status.setText("A parar…");
+					return;
+				}
 				if ("get".equals(c)) {
 					watch.setText(o.optString("a") + " = " + o.optLong("v"));
 					return;
@@ -257,15 +292,16 @@ public final class ArenaLab {
 					status.setText("Guardado: " + o.optString("k") + " = " + o.optString("a"));
 					return;
 				}
-				status.setText(c + ": " + o.optInt("count") + " candidatos");
+				status.setText(c + ": " + o.optInt("count") + " candidatos" + ("auto".equals(c) ? " (d=descidas, i=iguais, T=relógio). Toca num para ver ao vivo." : ""));
 				list.removeAllViews();
 				addrs.clear();
 				rows.clear();
+		rowW.clear();
 				JSONArray it = o.optJSONArray("items");
 				if (it != null) {
 					for (int i = 0; i < it.length(); i++) {
 						JSONObject e = it.getJSONObject(i);
-						addRow(a, e.getString("a"), e.optLong("v"));
+						addRow(a, e.getString("a"), e.optLong("v"), e.optInt("w", width), e.optString("x", ""));
 					}
 				}
 				if (addrs.size() == 1) select(addrs.get(0));

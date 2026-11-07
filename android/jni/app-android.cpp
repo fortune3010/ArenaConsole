@@ -1467,7 +1467,7 @@ extern "C" void JNICALL Java_org_ppsspp_ppsspp_NativeApp_sendMessageFromJava(JNI
 		System_PostUIMessage(UIMessage::PERMISSION_GRANTED, prm);
 	} else if (msg == "arena_scan") {
 		std::string labCmd = prm;
-		std::thread([labCmd]() { PushCommand("arena_scan_result", ArenaScan::Command(labCmd)); }).detach();
+		std::thread([labCmd]() { PushCommand("arena_scan_result", ArenaScan::Command(labCmd, [](const std::string &r) { PushCommand("arena_scan_result", r); })); }).detach();
 	} else if (msg == "arena_lock") {
 		// GA20_ARENA: Arena Console. Sem menus/atalhos (EmuScreen) e sem opções que mudam o jogo.
 		g_Config.bArenaLocked = (prm == "1");
